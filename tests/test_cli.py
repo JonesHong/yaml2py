@@ -7,8 +7,14 @@ import pytest
 import yaml
 from click.testing import CliRunner
 
-from yaml2py.cli import (YamlSchemaGenerator, infer_yaml_type, main,
-                         run_generator, snake_to_camel, to_snake_case)
+from yaml2py.cli import (
+    YamlSchemaGenerator,
+    infer_yaml_type,
+    main,
+    run_generator,
+    snake_to_camel,
+    to_snake_case,
+)
 
 
 class TestUtilityFunctions:

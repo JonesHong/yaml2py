@@ -216,7 +216,9 @@ class TestGeneratorFunction:
             assert os.path.exists(os.path.join(output_dir, "__init__.py"))
 
             # Check schema content
-            with open(os.path.join(output_dir, "schema.py"), "r", encoding="utf-8") as f:
+            with open(
+                os.path.join(output_dir, "schema.py"), "r", encoding="utf-8"
+            ) as f:
                 schema_content = f.read()
                 assert "class SystemSchema" in schema_content
                 assert "class FeatureSchema" in schema_content
@@ -225,7 +227,9 @@ class TestGeneratorFunction:
                 assert "def enabled(self)" in schema_content
 
             # Check manager content
-            with open(os.path.join(output_dir, "manager.py"), "r", encoding="utf-8") as f:
+            with open(
+                os.path.join(output_dir, "manager.py"), "r", encoding="utf-8"
+            ) as f:
                 manager_content = f.read()
                 assert "class ConfigManager" in manager_content
                 assert "SystemSchema" in manager_content

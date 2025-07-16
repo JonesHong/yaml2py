@@ -88,7 +88,7 @@ jobs:
         assert config.app.debug is True
         assert config.server.port == 8080
         assert config.database.password == 'secret123'  # Direct access returns actual value
-        print('✅ yaml2py CLI 測試通過')
+        print('yaml2py CLI test passed successfully')
         "
         
         # 測試 yml2py 指令
@@ -104,7 +104,7 @@ jobs:
         assert config.app.debug is True
         assert config.server.port == 8080
         assert config.database.password == 'secret123'  # Direct access returns actual value
-        print('✅ yml2py CLI 測試通過')
+        print('yml2py CLI test passed successfully')
         "
 
   build:

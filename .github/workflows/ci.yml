@@ -84,7 +84,10 @@ jobs:
         from manager import ConfigManager
         config_path = os.path.abspath('config.yaml')
         config = ConfigManager(config_path)
-        assert config.system.mode == 'development'
+        assert config.app.name == 'BasicExample'
+        assert config.app.debug is True
+        assert config.server.port == 8080
+        assert config.database.password == 'secret123'  # Direct access returns actual value
         print('✅ yaml2py CLI 測試通過')
         "
         
@@ -97,7 +100,10 @@ jobs:
         from manager import ConfigManager
         config_path = os.path.abspath('config.yaml')
         config = ConfigManager(config_path)
-        assert config.system.mode == 'development'
+        assert config.app.name == 'BasicExample'
+        assert config.app.debug is True
+        assert config.server.port == 8080
+        assert config.database.password == 'secret123'  # Direct access returns actual value
         print('✅ yml2py CLI 測試通過')
         "
 

@@ -79,9 +79,11 @@ jobs:
         yaml2py --config config.yaml --output ./test_generated
         python -c "
         import sys
+        import os
         sys.path.insert(0, './test_generated')
         from manager import ConfigManager
-        config = ConfigManager('config.yaml')
+        config_path = os.path.abspath('config.yaml')
+        config = ConfigManager(config_path)
         assert config.system.mode == 'development'
         print('✅ yaml2py CLI 測試通過')
         "
@@ -90,9 +92,11 @@ jobs:
         yml2py --config config.yaml --output ./test_generated2
         python -c "
         import sys
+        import os
         sys.path.insert(0, './test_generated2')
         from manager import ConfigManager
-        config = ConfigManager('config.yaml')
+        config_path = os.path.abspath('config.yaml')
+        config = ConfigManager(config_path)
         assert config.system.mode == 'development'
         print('✅ yml2py CLI 測試通過')
         "

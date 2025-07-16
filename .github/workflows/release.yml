@@ -1,0 +1,251 @@
+name: Release to PyPI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      test_only:
+        description: 'Only publish to TestPyPI'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write  # 用於 trusted publishing
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest pytest-cov
+    
+    - name: Run tests
+      run: |
+        python -m pytest tests/ --cov=yaml2py --cov-report=term
+    
+    - name: Test CLI
+      run: |
+        yaml2py --help
+        cd examples/basic_usage
+        yaml2py --config config.yaml --output ./test_generated
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      tag_version: ${{ steps.get_version.outputs.tag_version }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Get version information
+      id: get_version
+      run: |
+        # 從 pyproject.toml 獲取版本
+        PACKAGE_VERSION=$(python -c "
+        import tomllib
+        with open('pyproject.toml', 'rb') as f:
+            data = tomllib.load(f)
+        print(data['project']['version'])
+        ")
+        echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+        
+        # 如果是 release 事件，獲取標籤版本
+        if [ "${{ github.event_name }}" = "release" ]; then
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
+        else
+          echo "tag_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Verify version consistency
+      if: github.event_name == 'release'
+      run: |
+        if [ "${{ steps.get_version.outputs.version }}" != "${{ steps.get_version.outputs.tag_version }}" ]; then
+          echo "❌ Version mismatch!"
+          echo "Package version: ${{ steps.get_version.outputs.version }}"
+          echo "Tag version: ${{ steps.get_version.outputs.tag_version }}"
+          exit 1
+        fi
+        echo "✅ Version consistency verified: ${{ steps.get_version.outputs.version }}"
+    
+    - name: Build package
+      run: |
+        python -m build
+        echo "📦 Package built successfully"
+        ls -la dist/
+    
+    - name: Verify package
+      run: |
+        python -m twine check dist/*
+        echo "✅ Package verification passed"
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+        retention-days: 7
+
+  publish-testpypi:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always() && needs.build.result == 'success'
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+    
+    - name: Publish to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        print-hash: true
+    
+    - name: Wait for TestPyPI availability
+      run: |
+        echo "⏳ Waiting for package to be available on TestPyPI..."
+        sleep 120
+    
+    - name: Test installation from TestPyPI
+      run: |
+        echo "🧪 Testing installation from TestPyPI..."
+        pip install --index-url https://test.pypi.org/simple/ \
+                   --extra-index-url https://pypi.org/simple/ \
+                   yaml2py==${{ needs.build.outputs.version }}
+        
+        # 測試基本功能
+        yaml2py --help
+        python -c "import yaml2py; print(f'✅ yaml2py {yaml2py.__version__} installed successfully')"
+
+  publish-pypi:
+    needs: [build, publish-testpypi]
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'release' && 
+      needs.build.result == 'success' && 
+      needs.publish-testpypi.result == 'success' &&
+      !inputs.test_only
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+    
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        print-hash: true
+    
+    - name: Wait for PyPI availability
+      run: |
+        echo "⏳ Waiting for package to be available on PyPI..."
+        sleep 180
+    
+    - name: Test installation from PyPI
+      run: |
+        echo "🧪 Testing installation from PyPI..."
+        pip install yaml2py==${{ needs.build.outputs.version }}
+        
+        # 測試基本功能
+        yaml2py --help
+        python -c "import yaml2py; print(f'✅ yaml2py {yaml2py.__version__} published successfully')"
+
+  update-release:
+    needs: [build, publish-pypi]
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'release' && 
+      needs.publish-pypi.result == 'success'
+    
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+    
+    - name: Update release with assets
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/*
+        body: |
+          ## 🚀 yaml2py ${{ needs.build.outputs.version }}
+          
+          ### 📦 Installation
+          
+          ```bash
+          pip install yaml2py==${{ needs.build.outputs.version }}
+          ```
+          
+          ### 🔗 Links
+          
+          - [PyPI Package](https://pypi.org/project/yaml2py/${{ needs.build.outputs.version }}/)
+          - [Documentation](https://github.com/joneshong/yaml2py)
+          - [Changelog](https://github.com/joneshong/yaml2py/blob/main/CHANGELOG.md)
+          
+          ### 📊 Package Files
+          
+          The following files are attached to this release:
+          
+          - Source distribution (`.tar.gz`)
+          - Wheel distribution (`.whl`)
+          
+          ---
+          
+          *This release was automatically published by GitHub Actions.*
+
+  notify:
+    needs: [build, publish-pypi]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Notification
+      run: |
+        if [ "${{ needs.publish-pypi.result }}" = "success" ]; then
+          echo "🎉 yaml2py ${{ needs.build.outputs.version }} has been successfully published to PyPI!"
+          echo "📦 Installation: pip install yaml2py==${{ needs.build.outputs.version }}"
+          echo "🔗 PyPI: https://pypi.org/project/yaml2py/${{ needs.build.outputs.version }}/"
+        elif [ "${{ needs.publish-testpypi.result }}" = "success" ]; then
+          echo "✅ yaml2py ${{ needs.build.outputs.version }} has been published to TestPyPI"
+          echo "🧪 Test installation: pip install --index-url https://test.pypi.org/simple/ yaml2py"
+        else
+          echo "❌ Publication failed. Check the workflow logs for details."
+        fi

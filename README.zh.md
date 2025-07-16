@@ -90,8 +90,18 @@ print(config.database.options.pool_size) # 10
 for feature in config.features:
     print(f"{feature.name}: {feature.enabled}")
     
-# 敏感資料自動遮罩
-print(config.database.password)  # ********
+# 直接存取會返回實際值
+print(config.database.password)  # 'secret123'
+
+# 使用 print_all() 方法安全地顯示配置（敏感資料會自動遮罩）
+config.database.print_all()
+# 輸出：
+# DatabaseSchema:
+# ----------------------------------------
+#   host: localhost
+#   port: 5432
+#   password: se*****23  # 自動遮罩！
+# ----------------------------------------
 ```
 
 ## 進階功能

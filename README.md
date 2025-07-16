@@ -109,9 +109,21 @@ for feature in config.features:
     if feature.enabled:
         print(f"  Timeout: {feature.config.session_timeout}")
 
-# Sensitive data is automatically masked
-print(config.database.password)      # '********'
-print(config.ai_service.api_key)     # '********'
+# Direct access returns actual values
+print(config.database.password)      # 'secret123'
+print(config.ai_service.api_key)     # 'sk-1234567890abcdef'
+
+# Use print_all() method to safely display config with masked sensitive data
+config.database.print_all()
+# Output:
+# DatabaseSchema:
+# ----------------------------------------
+#   host: localhost
+#   port: 5432
+#   name: myapp
+#   user: admin
+#   password: se*****23  # Automatically masked!
+# ----------------------------------------
 
 # Hot reloading - config updates automatically
 # Edit config.yaml and changes are reflected immediately!

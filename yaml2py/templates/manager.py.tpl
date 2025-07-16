@@ -152,7 +152,12 @@ class ConfigManager:
         self._data = self._load_yaml()
         self._create_properties()
 
-        self._start_watchdog()
+        # 在 CI 環境中停用 watchdog 以避免 segmentation fault
+        if not self._is_ci_environment():
+            self._start_watchdog()
+        else:
+            print("Running in CI environment - watchdog disabled")
+        
         self._initialized = True
 
     def _load_yaml(self) -> Dict[str, Any]:
@@ -183,6 +188,27 @@ class ConfigManager:
             print("Configuration values reloaded successfully.")
         except Exception as e:
             print(f"Error reloading configuration: {e}")
+
+    def _is_ci_environment(self) -> bool:
+        """
+        檢測是否在 CI 環境中執行。
+        
+        返回：
+            bool: 如果在 CI 環境中返回 True，否則返回 False。
+        """
+        ci_env_vars = [
+            'CI',
+            'CONTINUOUS_INTEGRATION',
+            'GITHUB_ACTIONS',
+            'GITLAB_CI',
+            'JENKINS_URL',
+            'TRAVIS',
+            'CIRCLECI',
+            'AZURE_PIPELINES_BUILD_ID',
+            'BITBUCKET_BUILD_NUMBER',
+            'TEAMCITY_VERSION'
+        ]
+        return any(os.environ.get(var) for var in ci_env_vars)
 
     def _start_watchdog(self):
         """

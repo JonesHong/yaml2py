@@ -30,14 +30,8 @@ __email__ = "latte831104@example.com"
 __license__ = "MIT"
 
 # Re-export main CLI function for programmatic use
-from .cli import (
-    YamlSchemaGenerator,
-    infer_yaml_type,
-    main,
-    run_generator,
-    snake_to_camel,
-    to_snake_case,
-)
+from .cli import (YamlSchemaGenerator, infer_yaml_type, main, run_generator,
+                  snake_to_camel, to_snake_case)
 
 __all__ = [
     "main",

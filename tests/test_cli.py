@@ -7,8 +7,14 @@ import pytest
 import yaml
 from click.testing import CliRunner
 
-from yaml2py.cli import (YamlSchemaGenerator, infer_yaml_type, main,
-                         run_generator, snake_to_camel, to_snake_case)
+from yaml2py.cli import (
+    YamlSchemaGenerator,
+    infer_yaml_type,
+    main,
+    run_generator,
+    snake_to_camel,
+    to_snake_case,
+)
 
 
 class TestUtilityFunctions:
@@ -111,7 +117,7 @@ class TestSchemaGeneration:
         assert "def password(self) -> str:" in result
         assert "def api_key(self) -> str:" in result
         assert "def username(self) -> str:" in result
-        
+
         # Sensitive fields should NOT be masked in properties (masking is done in print_all method)
         assert "return self._data.get('password'" in result
         assert "return self._data.get('api_key'" in result
@@ -162,7 +168,10 @@ class TestCLI:
             )
 
             assert result.exit_code == 0  # Click doesn't exit with error
-            assert "Error: YAML file must contain a dictionary at the root level" in result.output
+            assert (
+                "Error: YAML file must contain a dictionary at the root level"
+                in result.output
+            )
 
     def test_cli_with_nonexistent_file(self):
         """Test CLI with non-existent file."""

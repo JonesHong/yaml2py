@@ -145,14 +145,17 @@ class TestGeneratedManager:
         # Direct access should return actual values (not masked)
         assert config.database.password == "secret123"
         assert config.api.key == "sk-1234567890abcdef"
-        
+
         # Test that return_properties masks sensitive data
-        props = config.database.return_properties(return_type="dict", mask_sensitive=True)
+        props = config.database.return_properties(
+            return_type="dict", mask_sensitive=True
+        )
         assert "se*****23" in str(props["password"])  # Masking pattern
-        
+
         # Test print_all method masks by default
         import io
         import sys
+
         captured_output = io.StringIO()
         sys.stdout = captured_output
         config.database.print_all()

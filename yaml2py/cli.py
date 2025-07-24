@@ -6,6 +6,8 @@ from typing import Any, Dict, List, Type, Union
 import click  # 使用 Click 來建立漂亮的 CLI
 import yaml
 
+from .env_loader import load_yaml_with_env, EnvironmentVariableError
+
 
 def snake_to_camel(snake_str: str) -> str:
     """將 snake_case 轉換為 CamelCase"""
@@ -227,9 +229,16 @@ def run_generator(config_path: str, output_dir: str):
     # 讀取 YAML 檔案
     with open(config_path, "r", encoding="utf-8") as f:
         try:
-            data = yaml.safe_load(f)
+            yaml_content = f.read()
+            # 檢查是否使用嚴格模式（通過命令列參數或環境變數控制）
+            strict_mode = os.getenv('YAML2PY_STRICT_ENV', 'false').lower() == 'true'
+            data = load_yaml_with_env(yaml_content, strict=strict_mode)
         except yaml.YAMLError as e:
             click.secho(f"Error parsing YAML file: {e}", fg="red")
+            return
+        except EnvironmentVariableError as e:
+            click.secho(f"Error: {e}", fg="red")
+            click.secho("提示：您可以設定環境變數 YAML2PY_STRICT_ENV=false 來忽略缺少的環境變數", fg="yellow")
             return
 
     if not isinstance(data, dict):

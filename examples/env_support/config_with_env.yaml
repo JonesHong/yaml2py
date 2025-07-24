@@ -1,0 +1,54 @@
+# 示範環境變數支援的配置檔案
+# 支援兩種語法：
+# 1. ${VAR} - 必須存在的環境變數
+# 2. ${VAR:default} - 帶預設值的環境變數
+
+system:
+  name: ASR_Hub
+  environment: ${ENVIRONMENT:development}
+  log_level: ${LOG_LEVEL:INFO}
+  debug: ${DEBUG_MODE:false}
+
+database:
+  host: ${DB_HOST:localhost}
+  port: ${DB_PORT:5432}
+  name: ${DB_NAME:asr_hub}
+  user: ${DB_USER:postgres}
+  # 敏感資料建議使用環境變數，不提供預設值
+  password: ${DB_PASSWORD}
+
+providers:
+  # OpenAI 設定
+  openai:
+    enabled: ${ENABLE_OPENAI:false}
+    api_key: ${OPENAI_API_KEY}
+    api_base: ${OPENAI_API_BASE:https://api.openai.com}
+    model: ${OPENAI_MODEL:whisper-1}
+    
+  # Google Speech-to-Text
+  google_stt:
+    enabled: true
+    credentials_path: ${GOOGLE_APPLICATION_CREDENTIALS:/path/to/creds.json}
+    project_id: ${GOOGLE_PROJECT_ID:my-project}
+    
+  # 本地模型（不需要環境變數）
+  funasr:
+    enabled: true
+    model_dir: ./models/funasr
+    device: cuda
+
+# 支援巢狀結構
+features:
+  hot_reload:
+    enabled: ${HOT_RELOAD:true}
+    interval: ${RELOAD_INTERVAL:5}
+  
+  security:
+    api_token: ${API_TOKEN}
+    secret_key: ${SECRET_KEY}
+    
+# 陣列支援
+allowed_origins:
+  - ${ORIGIN_1:http://localhost:3000}
+  - ${ORIGIN_2:http://localhost:8080}
+  - https://example.com

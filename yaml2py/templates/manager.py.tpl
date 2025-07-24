@@ -9,6 +9,14 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from threading import Thread
 try:
+    from yaml2py.env_loader import load_yaml_with_env, EnvironmentVariableError
+except ImportError:
+    # 如果作為獨立模組使用，提供簡單的後備實作
+    def load_yaml_with_env(content, strict=False):
+        if isinstance(content, str):
+            return yaml.safe_load(content)
+        return content
+try:
     from .schema import (
 {{SCHEMA_IMPORTS}}
     )
@@ -162,13 +170,21 @@ class ConfigManager:
 
     def _load_yaml(self) -> Dict[str, Any]:
         """
-        載入 YAML 配置文件。
+        載入 YAML 配置文件，支援環境變數替換。
         
         返回：
             Dict[str, Any]: 配置資料字典。
         """
         with open(self.config_path, 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f) or {}
+            content = f.read()
+            # 檢查是否使用嚴格模式
+            strict_mode = os.getenv('YAML2PY_STRICT_ENV', 'false').lower() == 'true'
+            try:
+                return load_yaml_with_env(content, strict=strict_mode) or {}
+            except Exception as e:
+                print(f"Warning: Failed to process environment variables: {e}")
+                # 如果處理失敗，退回到標準載入
+                return yaml.safe_load(content) or {}
 
     def _create_properties(self):
         """

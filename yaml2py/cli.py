@@ -231,14 +231,17 @@ def run_generator(config_path: str, output_dir: str):
         try:
             yaml_content = f.read()
             # 檢查是否使用嚴格模式（通過命令列參數或環境變數控制）
-            strict_mode = os.getenv('YAML2PY_STRICT_ENV', 'false').lower() == 'true'
+            strict_mode = os.getenv("YAML2PY_STRICT_ENV", "false").lower() == "true"
             data = load_yaml_with_env(yaml_content, strict=strict_mode)
         except yaml.YAMLError as e:
             click.secho(f"Error parsing YAML file: {e}", fg="red")
             return
         except EnvironmentVariableError as e:
             click.secho(f"Error: {e}", fg="red")
-            click.secho("提示：您可以設定環境變數 YAML2PY_STRICT_ENV=false 來忽略缺少的環境變數", fg="yellow")
+            click.secho(
+                "提示：您可以設定環境變數 YAML2PY_STRICT_ENV=false 來忽略缺少的環境變數",
+                fg="yellow",
+            )
             return
 
     if not isinstance(data, dict):

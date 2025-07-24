@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Type, Union
 import click  # 使用 Click 來建立漂亮的 CLI
 import yaml
 
-from .env_loader import load_yaml_with_env, EnvironmentVariableError
+from .env_loader import EnvironmentVariableError, load_yaml_with_env
 
 
 def snake_to_camel(snake_str: str) -> str:

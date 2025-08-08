@@ -1,8 +1,20 @@
 # yaml2py
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PyPI version](https://badge.fury.io/py/yaml2py.svg)](https://badge.fury.io/py/yaml2py)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/user/yaml2py/main/assets/images/logo.png" alt="yaml2py icon" width="200"/>
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/yaml2py/">
+    <img alt="PyPI version" src="https://badge.fury.io/py/yaml2py.svg">
+  </a>
+  <a href="https://pypi.org/project/yaml2py/">
+    <img alt="Python versions" src="https://img.shields.io/badge/python-3.8+-blue.svg">
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg">
+  </a>
+</p>
 
 A CLI tool to generate type-hinted Python config classes from YAML files with nested structure support, automatic file watching and hot reloading capabilities.
 

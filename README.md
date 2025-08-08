@@ -1,7 +1,7 @@
 # yaml2py
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/user/yaml2py/main/assets/images/logo.png" alt="yaml2py icon" width="200"/>
+  <img src="https://github.com/JonesHong/yaml2py/blob/main/assets/images/logo.png?raw=true" alt="yaml2py icon" width="200"/>
 </p>
 
 <p align="center">
